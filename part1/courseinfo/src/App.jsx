@@ -1,8 +1,11 @@
+import { useState } from "react";
 import Content from "./Content";
 import Header from "./Header";
 import Total from "./Total";
 
 const App = () => {
+  const [count, setCount] = useState(0);
+
   const course = {
     name: "Half Stack application development",
     parts: [
@@ -26,11 +29,7 @@ const App = () => {
       <Header course={course.name} />
       <Content parts={course.parts} />
 
-      {/* <Total
-        exercises1={part1.exercises}
-        exercises2={part2.exercises}
-        exercises3={part3.exercises}
-      /> */}
+      <Total exercises={course.parts} />
     </div>
   );
 };
