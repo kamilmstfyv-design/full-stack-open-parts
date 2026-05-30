@@ -2,6 +2,7 @@ import { useState } from "react";
 import Content from "./Content";
 import Header from "./Header";
 import Total from "./Total";
+import Try from "./Try";
 
 const App = () => {
   const [count, setCount] = useState(0);
@@ -30,6 +31,7 @@ const App = () => {
       <Content parts={course.parts} />
 
       <Total exercises={course.parts} />
+      <Try />
     </div>
   );
 };
