@@ -1,4 +1,32 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+
+const Button = ({ text, clickEvent }) => {
+  return (
+    <>
+      <button onClick={clickEvent}>{text}</button>
+    </>
+  );
+};
+
+const MostVotes = ({ maxVotes, popularAnecdote }) => {
+  return (
+    <>
+      <h1>Anecdote with most votes</h1>
+      <p>{popularAnecdote}</p>
+      <p>has {maxVotes} votes</p>
+    </>
+  );
+};
+
+const Anecdotes = ({ randomAnectode, voteOfAnectode }) => {
+  return (
+    <>
+      <h1>Anectode of the day</h1>
+      <p>{randomAnectode}</p>
+      <p>has {voteOfAnectode} votes</p>
+    </>
+  );
+};
 
 const App = () => {
   const anecdotes = [
@@ -27,14 +55,16 @@ const App = () => {
   const popularIndex = votes.indexOf(maxVotes);
   return (
     <div>
-      <h1>Anectode of the day</h1>
-      <p>{anecdotes[selected]}</p>
-      <p>has {votes[selected]} votes</p>
-      <button onClick={handleVoteClick}>votes</button>
-      <button onClick={handleClick}>next anectode</button>
-      <h1>Anecdote with most votes</h1>
-      <p>{anecdotes[popularIndex]}</p>
-      <p>has {maxVotes} votes</p>
+      <Anecdotes
+        randomAnectode={anecdotes[selected]}
+        voteOfAnectode={votes[selected]}
+      />
+      <Button text="votes" clickEvent={handleVoteClick} />
+      <Button text="next anectode" clickEvent={handleClick} />
+      <MostVotes
+        maxVotes={maxVotes}
+        popularAnecdote={anecdotes[popularIndex]}
+      />
     </div>
   );
 };
