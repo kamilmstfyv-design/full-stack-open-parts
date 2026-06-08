@@ -1,7 +1,10 @@
 const express = require("express");
 const morgan = require("morgan");
+const cors = require("cors");
 const app = express();
 app.use(express.json());
+app.use(cors());
+app.use(express.static("dist"));
 
 // const requestLogger = (req, res, next) => {
 //   console.log(`Method:`, req.method);
@@ -74,6 +77,7 @@ app.delete("/api/persons/:id", (req, res) => {
 
 app.post("/api/persons", (req, res) => {
   const body = req.body;
+  console.log(body);
   if (!body.name || !body.number) {
     return res.status(400).json({ error: "name or number is missing" });
   }
