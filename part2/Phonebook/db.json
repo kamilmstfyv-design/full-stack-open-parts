@@ -1,24 +1,15 @@
 {
   "persons": [
     {
-      "name": "Arto Hellas",
-      "number": "040-123456",
-      "id": "1"
+      "name": "Kamil Mustafayev",
+      "number": " +994 55 512 01 57",
+      "id": "rKI04Aigax0"
     },
     {
-      "name": "Ada Lovelace",
-      "number": "39-44-5323523",
-      "id": "2"
-    },
-    {
-      "name": "Dan Abramov",
-      "number": "12-43-234345",
-      "id": "3"
-    },
-    {
-      "name": "Mary Poppendieck",
-      "number": "39-23-6423122",
-      "id": "4"
+      "name": "Ehmed Eliyev",
+      "number": "+994 50 670 53 42",
+      "id": "zPdQe1kQrNA"
     }
-  ]
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
 }
