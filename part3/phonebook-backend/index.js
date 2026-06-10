@@ -1,113 +1,105 @@
+require("dotenv").config();
+const Person = require("./models/person");
+
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const app = express();
+
 app.use(express.json());
 app.use(cors());
 app.use(express.static("dist"));
-
-// const requestLogger = (req, res, next) => {
-//   console.log(`Method:`, req.method);
-//   console.log(`Path:`, req.path);
-//   console.log(`-----`);
-//   next();
-// };
-
-// app.use(requestLogger);
 
 morgan.token("body", (req, res) => {
   if (req.method === "POST") {
     return JSON.stringify(req.body);
   }
-  {
-    return "";
-  }
+  return "";
 });
+
 app.use(
   morgan(":method :url :status :res[content-length] - :response-time ms :body"),
 );
 
-let persons = [
-  {
-    id: "1",
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: "2",
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-  },
-  {
-    id: "3",
-    name: "Dan Abramov",
-    number: "12-43-234345",
-  },
-  {
-    id: "4",
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
-];
-
+// Bütün şəxsləri gətirən GET sorğusu
 app.get("/api/persons", (req, res) => {
-  res.json(persons);
+  Person.find({}).then((persons) => {
+    res.json(persons);
+  });
 });
 
+// ID-yə görə tək bir şəxsi gətirən GET sorğusu
 app.get("/api/persons/:id", (req, res) => {
-  const id = req.params.id;
-  const person = persons.find((person) => person.id === id);
-  if (!person) {
-    return res.status(404).end();
-  }
-  res.json(person);
+  Person.findById(req.params.id)
+    .then((person) => {
+      if (person) {
+        res.json(person);
+      } else {
+        res.status(404).end();
+      }
+    })
+    .catch((error) => {
+      console.log(error.message);
+      res.status(400).send({ error: "malformatted id" });
+    });
 });
 
+// Şəxsi silən DELETE sorğusu
 app.delete("/api/persons/:id", (req, res) => {
-  const id = req.params.id;
-  const findedPerson = persons.find((p) => p.id === id);
-
-  if (findedPerson) {
-    persons = persons.filter((person) => person.id !== id);
-    res.status(204).end();
-  } else {
-    res.status(404).end();
-  }
+  Person.findByIdAndDelete(req.params.id)
+    .then((result) => {
+      if (result) {
+        res.status(204).end();
+      } else {
+        res.status(404).json({
+          error: "Person not found",
+        });
+      }
+    })
+    .catch((error) => {
+      console.log(error.message);
+      res.status(400).json({
+        error: "no finded id",
+      });
+    });
 });
 
+// Yeni şəxs əlavə edən POST sorğusu (Düzəldilmiş Versiya)
 app.post("/api/persons", (req, res) => {
   const body = req.body;
-  console.log(body);
+
   if (!body.name || !body.number) {
-    return res.status(400).json({ error: "name or number is missing" });
+    return res.status(400).json({
+      error: "name or number cannot be empty",
+    });
   }
-  const match = persons.find((person) => person.name === body.name);
-  if (match) {
-    return res.status(400).json({ error: "name must be unique" });
-  }
-  const randomId = Math.floor(Math.random() * 10000).toString();
 
-  const newPerson = {
-    id: randomId,
-    name: body.name,
-    number: body.number,
-  };
-  persons = persons.concat(newPerson);
-  res.status(201).json(newPerson);
+  // 1. Öncə bazada eyni adlı şəxsi axtarırıq
+  Person.findOne({ name: body.name })
+    .then((samePerson) => {
+      if (samePerson) {
+        // Əgər tapılsa, funksiyanı dayandırırıq və 400 xətası veririk
+        return res.status(400).json({
+          error: "name must be unique",
+        });
+      }
+
+      // 2. Əgər ad unikaldırsa, YALNIZ bu bloqun daxilində yeni şəxsi yaradıb qeyd edirik
+      const person = new Person({
+        name: body.name,
+        number: body.number,
+      });
+
+      return person.save().then((newPerson) => {
+        res.json(newPerson);
+      });
+    })
+    .catch((error) => {
+      console.log(error.message);
+      res.status(500).json({ error: "database error" });
+    });
 });
 
-app.get("/info", (req, res) => {
-  res.send(`
-    <p>Phonebook has info for ${persons.length}</p>
-    <p>${new Date()} (Eastern European Standart Time)</p>
-    `);
-});
-
-// const unknownEndpoint = (request, response) => {
-//   response.status(404).send({ error: "unknown endpoint" });
-// };
-// app.use(unknownEndpoint);
-
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => console.log(`started port ${PORT}`));
