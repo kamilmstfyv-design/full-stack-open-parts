@@ -22,14 +22,18 @@ app.use(
 );
 
 // Bütün şəxsləri gətirən GET sorğusu
-app.get("/api/persons", (req, res) => {
-  Person.find({}).then((persons) => {
-    res.json(persons);
-  });
+app.get("/api/persons", (req, res, next) => {
+  Person.find({})
+    .then((persons) => {
+      res.json(persons);
+    })
+    .catch((error) => {
+      next(error);
+    });
 });
 
 // ID-yə görə tək bir şəxsi gətirən GET sorğusu
-app.get("/api/persons/:id", (req, res) => {
+app.get("/api/persons/:id", (req, res, next) => {
   Person.findById(req.params.id)
     .then((person) => {
       if (person) {
@@ -39,13 +43,12 @@ app.get("/api/persons/:id", (req, res) => {
       }
     })
     .catch((error) => {
-      console.log(error.message);
-      res.status(400).send({ error: "malformatted id" });
+      next(error);
     });
 });
 
 // Şəxsi silən DELETE sorğusu
-app.delete("/api/persons/:id", (req, res) => {
+app.delete("/api/persons/:id", (req, res, next) => {
   Person.findByIdAndDelete(req.params.id)
     .then((result) => {
       if (result) {
@@ -57,15 +60,12 @@ app.delete("/api/persons/:id", (req, res) => {
       }
     })
     .catch((error) => {
-      console.log(error.message);
-      res.status(400).json({
-        error: "no finded id",
-      });
+      next(error);
     });
 });
 
 // Yeni şəxs əlavə edən POST sorğusu (Düzəldilmiş Versiya)
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", (req, res, next) => {
   const body = req.body;
 
   if (!body.name || !body.number) {
@@ -84,7 +84,6 @@ app.post("/api/persons", (req, res) => {
         });
       }
 
-      // 2. Əgər ad unikaldırsa, YALNIZ bu bloqun daxilində yeni şəxsi yaradıb qeyd edirik
       const person = new Person({
         name: body.name,
         number: body.number,
@@ -95,10 +94,45 @@ app.post("/api/persons", (req, res) => {
       });
     })
     .catch((error) => {
-      console.log(error.message);
-      res.status(500).json({ error: "database error" });
+      next(error);
     });
 });
+
+app.put("/api/persons/:id", (req, res, next) => {
+  const body = req.body;
+  Person.findById(req.params.id)
+    .then((findedPerson) => {
+      if (!findedPerson) {
+        return res.status(404).json({
+          error: "Person not found",
+        });
+      }
+      findedPerson.number = body.number;
+      return findedPerson.save().then((updatedPerson) => {
+        res.json(updatedPerson);
+      });
+    })
+    .catch((error) => {
+      next(error);
+    });
+});
+
+const unknownEndpoint = (req, res) => {
+  res.status(404).send({ error: "unknown endpoint" });
+};
+
+app.use(unknownEndpoint);
+
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message);
+
+  if (error.name === "CastError") {
+    return res.status(400).send({ error: "malformatted id" });
+  }
+  next(error);
+};
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 
