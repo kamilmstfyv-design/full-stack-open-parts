@@ -15,7 +15,11 @@ mongoose
   });
 
 const perssonSchema = new mongoose.Schema({
-  name: String,
+  name: {
+    type: String,
+    required: true,
+    minLength: 4,
+  },
   number: String,
 });
 
