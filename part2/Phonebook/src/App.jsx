@@ -64,15 +64,25 @@ const App = () => {
       }
       return;
     } else {
-      addData(newPerson).then((data) => {
-        setPersons(persons.concat(data));
-        setNotmessage(`Added ${data.name}`);
-        setTimeout(() => {
-          setNotmessage(null);
-        }, 2500);
-        setNewName("");
-        setNewNumber("");
-      });
+      addData(newPerson)
+        .then((data) => {
+          setPersons(persons.concat(data));
+          setNotmessage(`Added ${data.name}`);
+          setTimeout(() => {
+            setNotmessage(null);
+          }, 2500);
+          setNewName("");
+          setNewNumber("");
+        })
+        .catch((error) => {
+          const errorMessage = error.response.data.error;
+
+          setNotmessage(errorMessage);
+
+          setTimeout(() => {
+            setNotmessage(null);
+          }, 3500);
+        });
     }
   };
   const filteredPerson = persons.filter((person) =>
