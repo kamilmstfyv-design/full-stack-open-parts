@@ -113,21 +113,24 @@ app.post("/api/persons", (req, res, next) => {
 
 app.put("/api/persons/:id", (req, res, next) => {
   const body = req.body;
-  Person.findById(req.params.id)
-    .then((findedPerson) => {
-      if (!findedPerson) {
-        return res.status(404).json({
-          error: "Person not found",
-        });
-      }
-      findedPerson.number = body.number;
-      return findedPerson.save().then((updatedPerson) => {
+
+  const person = {
+    name: body.name,
+    number: body.number,
+  };
+
+  Person.findByIdAndUpdate(req.params.id, person, {
+    new: true,
+    runValidators: true,
+  })
+    .then((updatedPerson) => {
+      if (updatedPerson) {
         res.json(updatedPerson);
-      });
+      } else {
+        res.status(404).json({ error: "Person not found" });
+      }
     })
-    .catch((error) => {
-      next(error);
-    });
+    .catch((error) => next(error));
 });
 
 const unknownEndpoint = (req, res) => {
